@@ -18,8 +18,8 @@ type JobProcessorClient struct {
 	DbPool      *pgxpool.Pool
 }
 
-func NewJobProcessorClient(ctx context.Context, deps *internal.CompositionRoot, cfg config.BackgroundProcessorConfig) (*JobProcessorClient, error) {
-	riverClient, err := river.NewClient(riverpgxv5.New(deps.DbPool), &river.Config{
+func NewJobProcessorClient(ctx context.Context, deps *internal.CompositionRoot, cfg config.BackgroundProcessorConfig, dbPool *pgxpool.Pool) (*JobProcessorClient, error) {
+	riverClient, err := river.NewClient(riverpgxv5.New(dbPool), &river.Config{
 		Queues: map[string]river.QueueConfig{
 			river.QueueDefault: {MaxWorkers: cfg.MaxWorkers},
 		},
@@ -34,7 +34,7 @@ func NewJobProcessorClient(ctx context.Context, deps *internal.CompositionRoot, 
 		return nil, fmt.Errorf("failed to start client: %w", err)
 	}
 
-	return &JobProcessorClient{RiverClient: riverClient, DbPool: deps.DbPool}, nil
+	return &JobProcessorClient{RiverClient: riverClient, DbPool: dbPool}, nil
 }
 
 func (jbc *JobProcessorClient) ScheduleNewJob(ctx context.Context, args river.JobArgs) error {
