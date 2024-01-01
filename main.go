@@ -5,7 +5,7 @@ import (
 	"async_worker/internal"
 	"async_worker/internal/backgroundJobs/workers"
 	"async_worker/internal/drivers/rest"
-	dbconnection "async_worker/internal/pkg/db-connection"
+	dbmigrations "async_worker/internal/pkg/db-migrations"
 	jobprocessor "async_worker/internal/pkg/jobProcessor"
 	"async_worker/internal/pkg/jobProcessor/migrations"
 	someresource "async_worker/internal/someResource"
@@ -18,13 +18,18 @@ func main() {
 	ctx := context.Background()
 
 	cfg := config.NewConfig()
+
 	compositionRoot := internal.NewCompositionRoot(ctx, cfg)
 	backgroundJob, err := setupBackgroundJobProcessor(ctx, cfg, compositionRoot)
 	if err != nil {
 		panic(err)
 	}
 
-	defer backgroundJob.DbPool.Close()
+	err = dbmigrations.Migrate(compositionRoot.DbPool)
+
+	if err != nil {
+		panic(err)
+	}
 
 	router := gin.Default()
 	someResourceDependencies := someresource.NewSomeResourceDependencies(backgroundJob)
@@ -33,13 +38,7 @@ func main() {
 }
 
 func setupBackgroundJobProcessor(ctx context.Context, cfg *config.Config, deps *internal.CompositionRoot) (*jobprocessor.JobProcessorClient, error) {
-	dbPool, err := dbconnection.GetDbPool(ctx, &cfg.Db)
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = migrations.PerformStartupRiverMigration(ctx, dbPool)
+	err := migrations.PerformStartupRiverMigration(ctx, deps.DbPool)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +47,7 @@ func setupBackgroundJobProcessor(ctx context.Context, cfg *config.Config, deps *
 	workers.AddDefaultWorker(backgroundWorkersMgmnt)
 	workers.AddNewWorker(backgroundWorkersMgmnt, &workers.NewRequestWorker{})
 
-	jobProcessorClient, err := jobprocessor.NewJobProcessorClient(ctx, deps, cfg.BackgroundProcessorConfig, dbPool)
+	jobProcessorClient, err := jobprocessor.NewJobProcessorClient(ctx, deps, cfg.BackgroundProcessorConfig, deps.DbPool)
 	if err != nil {
 		return nil, err
 	}

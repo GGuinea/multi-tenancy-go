@@ -5,7 +5,9 @@
 ```
 go get github.com/riverqueue/river
 go get github.com/riverqueue/river/riverdriver/riverpgxv5
+go get github.com/pressly/goose/v3
 go get -u github.com/gin-gonic/gin
+
 ```
 
 ## Setup db
