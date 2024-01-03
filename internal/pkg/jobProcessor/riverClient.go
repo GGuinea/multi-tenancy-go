@@ -1,8 +1,8 @@
 package jobprocessor
 
 import (
-	"async_worker/config"
-	"async_worker/internal"
+	"multitenancy/config"
+	"multitenancy/internal"
 	"context"
 
 	"fmt"

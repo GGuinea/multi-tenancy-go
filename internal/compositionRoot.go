@@ -1,8 +1,8 @@
 package internal
 
 import (
-	"async_worker/config"
-	dbconnection "async_worker/internal/pkg/db-connection"
+	"multitenancy/config"
+	dbconnection "multitenancy/internal/pkg/db-connection"
 	"context"
 
 	"fmt"

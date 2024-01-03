@@ -1,7 +1,7 @@
 package dbconnection
 
 import (
-	"async_worker/config"
+	"multitenancy/config"
 	"context"
 	"fmt"
 
@@ -9,9 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func GetDbConnection(ctx context.Context, config *config.DbConfig) (*pgx.Conn, error) {
-	return pgx.Connect(ctx, buildConnectionString(config, "public"))
-}
+type Public func(tenant string) (*pgx.Conn, error)
 
 func GetDbPool(ctx context.Context, config *config.DbConfig) (*pgxpool.Pool, error) {
 	return pgxpool.New(ctx, buildConnectionString(config, "public"))

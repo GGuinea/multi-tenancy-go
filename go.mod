@@ -1,4 +1,4 @@
-module async_worker
+module multitenancy
 
 go 1.21.4
 

@@ -1,14 +1,16 @@
 package rest
 
 import (
-	someresource "async_worker/internal/someResource"
+	"multitenancy/internal/tenants"
 
 	"github.com/gin-gonic/gin"
 )
 
-func BuildRoutes(router *gin.Engine, deps *someresource.SomeResourceDependencies) {
+func BuildRoutes(router *gin.Engine, tenantsDeps *tenants.DependencyTree) {
 	router.GET("/ping", ping)
-	someresource.BuildRoutes(router, deps)
+
+	tenantsPath := router.Group("/tenants")
+	tenants.BuildRoutes(tenantsPath, tenantsDeps)
 }
 
 func ping(c *gin.Context) {

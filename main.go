@@ -1,15 +1,16 @@
 package main
 
 import (
-	"async_worker/config"
-	"async_worker/internal"
-	"async_worker/internal/backgroundJobs/workers"
-	"async_worker/internal/drivers/rest"
-	dbmigrations "async_worker/internal/pkg/db-migrations"
-	jobprocessor "async_worker/internal/pkg/jobProcessor"
-	"async_worker/internal/pkg/jobProcessor/migrations"
-	someresource "async_worker/internal/someResource"
 	"context"
+	"fmt"
+	"multitenancy/config"
+	"multitenancy/internal"
+	"multitenancy/internal/backgroundJobs/workers"
+	"multitenancy/internal/drivers/rest"
+	dbmigrations "multitenancy/internal/pkg/db-migrations"
+	jobprocessor "multitenancy/internal/pkg/jobProcessor"
+	"multitenancy/internal/pkg/jobProcessor/migrations"
+	"multitenancy/internal/tenants"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,19 +22,19 @@ func main() {
 
 	compositionRoot := internal.NewCompositionRoot(ctx, cfg)
 	backgroundJob, err := setupBackgroundJobProcessor(ctx, cfg, compositionRoot)
+	fmt.Println(backgroundJob)
 	if err != nil {
 		panic(err)
 	}
 
 	err = dbmigrations.Migrate(compositionRoot.DbPool)
-
 	if err != nil {
 		panic(err)
 	}
 
 	router := gin.Default()
-	someResourceDependencies := someresource.NewSomeResourceDependencies(backgroundJob)
-	rest.BuildRoutes(router, someResourceDependencies)
+	tenantDependencies := tenants.NewTenantDependencies(compositionRoot.DbPool)
+	rest.BuildRoutes(router, tenantDependencies)
 	router.Run(":8080")
 }
 
