@@ -2,7 +2,7 @@ package tenants
 
 import (
 	"multitenancy/internal/tenants/app"
-	"multitenancy/internal/tenants/app/adapters/tenantspostgresrepository"
+	"multitenancy/internal/tenants/app/adapters"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -20,7 +20,7 @@ func NewTenantDependencies(dbPool *pgxpool.Pool) *DependencyTree {
 		panic("dbPool is nil")
 	}
 
-	tenantRepository := tenantspostgresrepository.NewTenantsPostgresRepository(dbPool)
+	tenantRepository := adapters.NewTenantsPostgresRepository(dbPool)
 	tenantService := app.NewTenantService(tenantRepository)
 
 	return &DependencyTree{

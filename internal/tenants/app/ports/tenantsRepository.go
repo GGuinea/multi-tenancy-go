@@ -1,4 +1,4 @@
-package tenantsrepository
+package ports
 
 import (
 	"context"
@@ -7,4 +7,6 @@ import (
 
 type TenantsRepository interface {
 	List(context.Context) ([]domain.Tenant, error)
+	Save(context.Context, domain.Tenant) error
+	ReadById(context.Context, string) (domain.Tenant, error)
 }
