@@ -23,11 +23,3 @@ func AddNewWorker[T river.JobArgs](currentWorkers *backgroundJobWorkers, newWork
 	}
 	return nil
 }
-
-func AddDefaultWorker(currentWorkers *backgroundJobWorkers) error {
-	err := river.AddWorkerSafely(currentWorkers.Workers, &DefautlWorker{})
-	if err != nil {
-		return fmt.Errorf("failed to add default worker: %w", err)
-	}
-	return nil
-}

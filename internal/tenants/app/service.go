@@ -2,20 +2,20 @@ package app
 
 import (
 	"context"
-	"fmt"
-	dbmigrations "multitenancy/internal/pkg/db-migrations"
 	"multitenancy/internal/tenants/app/ports"
 	"multitenancy/internal/tenants/domain"
+	"multitenancy/internal/tenants/workers"
 
 	"github.com/google/uuid"
 )
 
 type TenantService struct {
 	tenantsRepository ports.TenantsRepository
+	jobProcessor      ports.JobProcessor
 }
 
-func NewTenantService(tenantsRepository ports.TenantsRepository) *TenantService {
-	return &TenantService{tenantsRepository: tenantsRepository}
+func NewTenantService(tenantsRepository ports.TenantsRepository, jobProcessor ports.JobProcessor) *TenantService {
+	return &TenantService{tenantsRepository: tenantsRepository, jobProcessor: jobProcessor}
 }
 
 func (t *TenantService) ListTenants(ctx context.Context) ([]domain.Tenant, error) {
@@ -41,15 +41,18 @@ func (t *TenantService) AddTenant(ctx context.Context, tenant domain.TenantReque
 	}
 
 	// this code should be executed asynchronously
-	err = dbmigrations.CreateSchemaForTenant(tenant.Name)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	err = dbmigrations.MigrateTenant(tenant.Name)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// err = dbmigrations.CreateSchemaForTenant(tenant.Name)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	//
+	// err = dbmigrations.MigrateTenant(tenant.Name)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	t.jobProcessor.ScheduleNewJob(ctx, workers.MigrateTenantArgs{
+		TenantName: tenant.Name,
+	})
 	// this code should be executed asynchronously
 
 	return uuid, nil

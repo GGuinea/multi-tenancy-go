@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"multitenancy/config"
 	"multitenancy/internal"
 	"multitenancy/internal/backgroundJobs/workers"
@@ -11,6 +10,7 @@ import (
 	jobprocessor "multitenancy/internal/pkg/jobProcessor"
 	"multitenancy/internal/pkg/jobProcessor/migrations"
 	"multitenancy/internal/tenants"
+	tenantWorkers "multitenancy/internal/tenants/workers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +22,7 @@ func main() {
 
 	compositionRoot := internal.NewCompositionRoot(ctx, cfg)
 	backgroundJob, err := setupBackgroundJobProcessor(ctx, cfg, compositionRoot)
-	fmt.Println(backgroundJob)
+
 	if err != nil {
 		panic(err)
 	}
@@ -33,7 +33,12 @@ func main() {
 	}
 
 	router := gin.Default()
-	tenantDependencies := tenants.NewTenantDependencies(compositionRoot.DbPool)
+
+	tenantDependencies := tenants.NewTenantDependencies(&tenants.TenantDependencies{
+		DbPool:       compositionRoot.DbPool,
+		JobProcessor: backgroundJob,
+	})
+
 	rest.BuildRoutes(router, tenantDependencies)
 	router.Run(":8080")
 }
@@ -45,8 +50,7 @@ func setupBackgroundJobProcessor(ctx context.Context, cfg *config.Config, deps *
 	}
 
 	backgroundWorkersMgmnt := workers.NewBackgroundJobWorkers(deps.BackgroundWorkers)
-	workers.AddDefaultWorker(backgroundWorkersMgmnt)
-	workers.AddNewWorker(backgroundWorkersMgmnt, &workers.NewRequestWorker{})
+	workers.AddNewWorker(backgroundWorkersMgmnt, &tenantWorkers.MigrateTenanWorker{})
 
 	jobProcessorClient, err := jobprocessor.NewJobProcessorClient(ctx, deps, cfg.BackgroundProcessorConfig, deps.DbPool)
 	if err != nil {

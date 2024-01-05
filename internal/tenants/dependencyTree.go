@@ -1,6 +1,7 @@
 package tenants
 
 import (
+	jobprocessor "multitenancy/internal/pkg/jobProcessor"
 	"multitenancy/internal/tenants/app"
 	"multitenancy/internal/tenants/app/adapters"
 
@@ -8,22 +9,25 @@ import (
 )
 
 type TenantDependencies struct {
-	DbPool *pgxpool.Pool
+	DbPool       *pgxpool.Pool
+	JobProcessor *jobprocessor.JobProcessorClient
 }
 
 type DependencyTree struct {
 	TenantService *app.TenantService
+	JobProcessor  *jobprocessor.JobProcessorClient
 }
 
-func NewTenantDependencies(dbPool *pgxpool.Pool) *DependencyTree {
-	if dbPool == nil {
-		panic("dbPool is nil")
+func NewTenantDependencies(deps *TenantDependencies) *DependencyTree {
+	if deps == nil {
+		panic("deps are nil")
 	}
 
-	tenantRepository := adapters.NewTenantsPostgresRepository(dbPool)
-	tenantService := app.NewTenantService(tenantRepository)
+	tenantRepository := adapters.NewTenantsPostgresRepository(deps.DbPool)
+	tenantService := app.NewTenantService(tenantRepository, deps.JobProcessor)
 
 	return &DependencyTree{
 		TenantService: tenantService,
+		JobProcessor:  deps.JobProcessor,
 	}
 }
