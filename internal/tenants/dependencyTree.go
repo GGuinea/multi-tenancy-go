@@ -15,7 +15,6 @@ type TenantDependencies struct {
 
 type DependencyTree struct {
 	TenantService *app.TenantService
-	JobProcessor  *jobprocessor.JobProcessorClient
 }
 
 func NewTenantDependencies(deps *TenantDependencies) *DependencyTree {
@@ -28,6 +27,5 @@ func NewTenantDependencies(deps *TenantDependencies) *DependencyTree {
 
 	return &DependencyTree{
 		TenantService: tenantService,
-		JobProcessor:  deps.JobProcessor,
 	}
 }

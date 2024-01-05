@@ -40,20 +40,13 @@ func (t *TenantService) AddTenant(ctx context.Context, tenant domain.TenantReque
 		return "", err
 	}
 
-	// this code should be executed asynchronously
-	// err = dbmigrations.CreateSchemaForTenant(tenant.Name)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	//
-	// err = dbmigrations.MigrateTenant(tenant.Name)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	t.jobProcessor.ScheduleNewJob(ctx, workers.MigrateTenantArgs{
+	err = t.jobProcessor.ScheduleNewJob(ctx, workers.MigrateTenantArgs{
 		TenantName: tenant.Name,
 	})
-	// this code should be executed asynchronously
+
+	if err != nil {
+		return "", err
+	}
 
 	return uuid, nil
 }
