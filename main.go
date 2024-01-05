@@ -27,7 +27,7 @@ func main() {
 		panic(err)
 	}
 
-	err = dbmigrations.Migrate(compositionRoot.DbPool)
+	err = dbmigrations.MigrateGlobal(compositionRoot.DbPool)
 	if err != nil {
 		panic(err)
 	}
