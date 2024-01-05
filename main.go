@@ -39,6 +39,8 @@ func main() {
 		JobProcessor: backgroundJob,
 	})
 
+	tenants.VerifyTenantsMigrations(ctx, tenantDependencies)
+
 	rest.BuildRoutes(router, tenantDependencies)
 	router.Run(":8080")
 }

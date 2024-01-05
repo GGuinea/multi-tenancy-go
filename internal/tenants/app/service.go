@@ -59,3 +59,15 @@ func (t *TenantService) ReadById(ctx context.Context, id string) (domain.Tenant,
 
 	return tenant, nil
 }
+
+func (t *TenantService) MigrateTenant(ctx context.Context, tenantName string) error {
+	err := t.jobProcessor.ScheduleNewJob(ctx, workers.MigrateTenantArgs{
+		TenantName: tenantName,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
