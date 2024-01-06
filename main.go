@@ -6,6 +6,7 @@ import (
 	"multitenancy/internal"
 	"multitenancy/internal/backgroundJobs/workers"
 	"multitenancy/internal/drivers/rest"
+	"multitenancy/internal/notes"
 	dbmigrations "multitenancy/internal/pkg/db-migrations"
 	jobprocessor "multitenancy/internal/pkg/jobProcessor"
 	"multitenancy/internal/pkg/jobProcessor/migrations"
@@ -39,9 +40,14 @@ func main() {
 		JobProcessor: backgroundJob,
 	})
 
+	noteDependencies := notes.NewNoteDependencies(&notes.NoteDepencies{
+		DbPool: compositionRoot.DbPool,
+	},
+	)
+
 	tenants.VerifyTenantsMigrations(ctx, tenantDependencies)
 
-	rest.BuildRoutes(router, tenantDependencies)
+	rest.BuildRoutes(router, tenantDependencies, noteDependencies)
 	router.Run(":8080")
 }
 

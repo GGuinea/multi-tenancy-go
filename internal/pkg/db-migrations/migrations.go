@@ -43,15 +43,13 @@ func MigrateTenant(tenantName string) error {
 	}
 
 	db := stdlib.OpenDB(*dbconn.Config())
+	defer db.Close()
 
 	if err := goose.Up(db, "migrations/tenant"); err != nil {
 		return err
 	}
 
-	if err := db.Close(); err != nil {
-		return err
-	}
-
+	dbconn.Exec(context.Background(), "set search_path to public")
 	return nil
 }
 
@@ -62,7 +60,7 @@ func CreateSchemaForTenant(tenantName string) error {
 		return err
 	}
 
-	_, err = dbconn.Exec(context.Background(), "CREATE SCHEMA IF NOT EXISTS " + tenantName)
+	_, err = dbconn.Exec(context.Background(), "CREATE SCHEMA IF NOT EXISTS "+tenantName)
 
 	if err != nil {
 		return err
