@@ -1,4 +1,6 @@
-# River background job processor with postgreSQL
+# Multi tenant application based
+Using goose, gin and river
+Tenan migrations are provided with background jobs based on riverqueue
 
 ## Deps
 
