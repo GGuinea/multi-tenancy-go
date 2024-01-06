@@ -23,11 +23,9 @@ func MigrateGlobal(pool *pgxpool.Pool) error {
 
 	db := stdlib.OpenDBFromPool(pool)
 
-	if err := goose.Up(db, "migrations/global"); err != nil {
-		return err
-	}
+	defer db.Close()
 
-	if err := db.Close(); err != nil {
+	if err := goose.Up(db, "migrations/global"); err != nil {
 		return err
 	}
 
