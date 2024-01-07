@@ -9,8 +9,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Public func(tenant string) (*pgx.Conn, error)
-
 func GetDbPool(ctx context.Context, config *config.DbConfig) (*pgxpool.Pool, error) {
 	return pgxpool.New(ctx, buildConnectionString(config, "public"))
 }

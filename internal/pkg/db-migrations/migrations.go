@@ -33,10 +33,11 @@ func MigrateGlobal(pool *pgxpool.Pool) error {
 }
 
 func MigrateTenant(tenantName string) error {
+	ctx := context.Background()
 	goose.SetDialect("postgres")
 	goose.SetBaseFS(tenantMigrations)
 
-	dbconn, err := dbconnection.GetDbConnectionForTenant(context.Background(), &config.NewConfig().Db, tenantName)
+	dbconn, err := dbconnection.GetDbConnectionForTenant(ctx, &config.NewConfig().Db, tenantName)
 
 	if err != nil {
 		return err
@@ -49,22 +50,24 @@ func MigrateTenant(tenantName string) error {
 		return err
 	}
 
-	dbconn.Exec(context.Background(), "set search_path to public")
+	dbconn.Exec(ctx, "set search_path to public")
 	return nil
 }
 
 func CreateSchemaForTenant(tenantName string) error {
-	dbconn, err := dbconnection.GetDbConnectionForTenant(context.Background(), &config.NewConfig().Db, tenantName)
+	ctx := context.Background()
+	dbconn, err := dbconnection.GetDbConnectionForTenant(ctx, &config.NewConfig().Db, tenantName)
 
 	if err != nil {
 		return err
 	}
 
-	_, err = dbconn.Exec(context.Background(), "CREATE SCHEMA IF NOT EXISTS "+tenantName)
+	_, err = dbconn.Exec(ctx, "CREATE SCHEMA IF NOT EXISTS "+tenantName)
 
 	if err != nil {
 		return err
 	}
 
+	dbconn.Exec(ctx, "set search_path to public")
 	return nil
 }
