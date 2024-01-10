@@ -2,9 +2,9 @@ package app
 
 import (
 	"context"
+	dbmigrations "multitenancy/internal/pkg/db-migrations"
 	"multitenancy/internal/tenants/app/ports"
 	"multitenancy/internal/tenants/domain"
-	"multitenancy/internal/tenants/workers"
 
 	"github.com/google/uuid"
 )
@@ -39,16 +39,27 @@ func (t *TenantService) AddTenant(ctx context.Context, tenant domain.TenantReque
 	if err != nil {
 		return "", err
 	}
-
-	err = t.jobProcessor.ScheduleNewJob(ctx, workers.MigrateTenantArgs{
-		TenantName: tenant.Name,
-	})
-
+	err = t.MigrateTenant(ctx, tenant.Name)
 	if err != nil {
 		return "", err
 	}
 
 	return uuid, nil
+}
+
+func (t *TenantService) MigrateTenant(ctx context.Context, tenantName string) error {
+	err := dbmigrations.CreateSchemaForTenant(tenantName)
+
+	if err != nil {
+		return err
+	}
+
+	err = dbmigrations.MigrateTenant(tenantName)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (t *TenantService) ReadById(ctx context.Context, id string) (domain.Tenant, error) {
@@ -58,16 +69,4 @@ func (t *TenantService) ReadById(ctx context.Context, id string) (domain.Tenant,
 	}
 
 	return tenant, nil
-}
-
-func (t *TenantService) MigrateTenant(ctx context.Context, tenantName string) error {
-	err := t.jobProcessor.ScheduleNewJob(ctx, workers.MigrateTenantArgs{
-		TenantName: tenantName,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
