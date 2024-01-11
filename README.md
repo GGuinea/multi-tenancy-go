@@ -1,6 +1,6 @@
 # Multi tenant application based
-Using goose, gin and river
-Tenan migrations are provided with background jobs based on riverqueue
+CRUD applications with multitenant database architecture. Taking care of migrations, schema creation without any ORMs.
+Using goose, gin, PostgreSQL
 
 ## Deps
 
